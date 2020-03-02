@@ -16,7 +16,8 @@ local function checkInt(x)
 end
 
 local function toInt(x)
-    return math.floor(x)
+    local t = math.modf(x)
+    return t
 end
 
 local function scaleValue(val, exp)
@@ -57,21 +58,21 @@ FixedNumber.ToInt = function(a)
 end
 
 FixedNumber.ToFloor = function(a)
-    if a.val > 0 then
+    if a.val >= 0 then
         return toInt(a.val / BASE)
     end
     return toInt((a.val - (BASE - 1)) / BASE)
 end
 
 FixedNumber.ToCeil = function(a)
-    if a.val > 0 then
+    if a.val >= 0 then
         return toInt((a.val + (BASE - 1)) / BASE)
     end
     return toInt(a.val / BASE)
 end
 
 FixedNumber.ToRound = function(a)
-    if a.val > 0 then
+    if a.val >= 0 then
         return toInt((a.val + BASE / 2) / BASE)
     end
     return toInt((a.val - BASE / 2) / BASE)
@@ -114,5 +115,14 @@ end
 FixedNumber.__le = function(a, b)
     return a.val <= b.val
 end
+
+FixedNumber.FIXED_EPS = FixedNumber.New(1, -FixedNumber.PRECISION)
+FixedNumber.FIXED_ZERO = FixedNumber.New(0)
+FixedNumber.FIXED_ONE = FixedNumber.New(1)
+FixedNumber.FIXED_TWO = FixedNumber.New(2)
+FixedNumber.FIXED_HALF = FixedNumber.New(0.5)
+FixedNumber.FIXED_NEG_ONE = FixedNumber.New(-1)
+FixedNumber.FIXED_MIN = FixedNumber.New(2 ^ 53, -FixedNumber.PRECISION)
+FixedNumber.FIXED_MAX = FixedNumber.New(-2 ^ 53, -FixedNumber.PRECISION)
 
 return FixedNumber
