@@ -1,35 +1,33 @@
 local FixedMath = {}
 
-local FixedNumber = require("fixed_number")
-local FixedMathTable = require("fixed_math_table")
+local EPS     = FixedNumber.EPS
+local ZERO    = FixedNumber.ZERO
+local ONE     = FixedNumber.ONE
+local TWO     = FixedNumber.TWO
+local HALF    = FixedNumber.HALF
+local NEG_ONE = FixedNumber.NEG_ONE
 
-local FIXED_EPS = FixedNumber.FIXED_EPS
-local FIXED_ZERO = FixedNumber.FIXED_ZERO
-local FIXED_ONE = FixedNumber.FIXED_ONE
-local FIXED_TWO = FixedNumber.FIXED_TWO
-local FIXED_NEG_ONE = FixedNumber.FIXED_NEG_ONE
+FixedMath.PI      = FixedNumber.New(3.1415926536)
+FixedMath.RAD2DEG = FixedNumber.New(57.295779513)
+FixedMath.DEG2RAD = FixedNumber.New(0.0174532925)
 
-FixedMath.FIXED_PI = FixedNumber.New(3.1415926536);
-FixedMath.FIXED_RAD2DEG = FixedNumber.New(57.295779513);
-FixedMath.FIXED_DEG2RAD = FIXED_ONE / FixedMath.FIXED_RAD2DEG;
-
-FixedMath.FixedInt = function(a)
+FixedMath.ToInt = function(a)
     return a:ToInt()
 end
 
-FixedMath.FixedFloor = function(a)
+FixedMath.Floor = function(a)
     return a:ToFloor()
 end
 
-FixedMath.FixedCeil = function(a)
+FixedMath.Ceil = function(a)
     return a:ToCeil()
 end
 
-FixedMath.FixedRound = function(a)
+FixedMath.Round = function(a)
     return a:ToRound()
 end
 
-FixedMath.FixedClamp = function(a, mina, maxa)
+FixedMath.Clamp = function(a, mina, maxa)
     if a < mina then
         return FixedNumber.New(mina)
     elseif a > maxa then
@@ -39,21 +37,21 @@ FixedMath.FixedClamp = function(a, mina, maxa)
     end
 end
 
-FixedMath.FixedPow = function(a, n)
+FixedMath.Pow = function(a, n)
     if n == 0 then
-        return FixedNumer.New(1)
-    elseif n == 1 or a == FIXED_ZERO or a == FIXED_ONE then
+        return FixedNumer.New(ONE)
+    elseif n == 1 or a == ZERO or a == ONE then
         return FixedNumber.New(a)
     elseif n < 0 then
-        return FixedMath.FixedPow(FIXED_ONE / a, -n)
+        return FixedMath.Pow(ONE / a, -n)
     elseif n & 1 == 1 then
-        return FixedMath.FixedPow(a * a, n >> 1) * a
+        return FixedMath.Pow(a * a, n >> 1) * a
     else
-        return FixedMath.FixedPow(a * a, n >> 1)
+        return FixedMath.Pow(a * a, n >> 1)
     end
 end
 
-FixedMath.FixedMin = function(a, b)
+FixedMath.Min = function(a, b)
     if a < b then
         return FixedNumber.New(a)
     else
@@ -61,7 +59,7 @@ FixedMath.FixedMin = function(a, b)
     end
 end
 
-FixedMath.FixedMax = function(a, b)
+FixedMath.Max = function(a, b)
     if a < b then
         return FixedNumber.New(b)
     else
@@ -69,84 +67,91 @@ FixedMath.FixedMax = function(a, b)
     end
 end
 
-FixedMath.FixedAbs = function(a)
-    if a < FIXED_ZERO then
+FixedMath.Abs = function(a)
+    if a < ZERO then
         return -a
     else
         return FixedNumber.New(a)
     end
 end
 
-FixedMath.FixedSqrt = function(a)
-    if a <= FIXED_ZERO then
-        return FixedNumber.New(FIXED_ZERO)
-    elseif a == FIXED_ONE then
-        return FixedNumber.New(FIXED_ONE)
+FixedMath.Sqrt = function(a)
+    if a <= ZERO then
+        return FixedNumber.New(ZERO)
+    elseif a == ONE then
+        return FixedNumber.New(ONE)
     end
     local t = FixedNumber.New(a)
-    local c = FIXED_ZERO
-    while FixedMath.FixedAbs(t - c) > FIXED_EPS do
+    local c = ZERO
+    while FixedMath.Abs(t - c) > EPS do
         c = t
-        t = (t + a / t) / FIXED_TWO
+        t = (t + a / t) / TWO
     end
     return t
 end
 
-local FIXED_TWO_PI = FIXED_TWO * FixedMath.FIXED_PI
+local TWO_PI = TWO * FixedMath.PI
 
-FixedMath.FixedSin = function(a)
-    while a < FIXED_ZERO do
-        a = a + FIXED_TWO_PI
+FixedMath.Sin = function(a)
+    while a < ZERO do
+        a = a + TWO_PI
     end
-    while a >= FIXED_TWO_PI do
-        a = a - FIXED_TWO_PI
+    while a >= TWO_PI do
+        a = a - TWO_PI
     end
-    a = a * FixedNumber.New(FixedMathTable.SIN_BASE) / FixedMath.FIXED_PI
-    return FixedNumber.New(FixedMathTable.SIN_TABLE[FixedMath.FixedInt(a) + 1], -FixedMathTable.SIN_EXP)
+    a = a * FixedNumber.New(FixedMathTable.SIN_BASE) / FixedMath.PI
+    return FixedNumber.New(
+        FixedMathTable.SIN_TABLE[FixedMath.ToInt(a) + 1]
+        , -FixedMathTable.SIN_EXP)
 end
 
-FixedMath.FixedCos = function(a)
-    while a < FIXED_ZERO do
-        a = a + FIXED_TWO_PI
+FixedMath.Cos = function(a)
+    while a < ZERO do
+        a = a + TWO_PI
     end
-    while a >= FIXED_TWO_PI do
-        a = a - FIXED_TWO_PI
+    while a >= TWO_PI do
+        a = a - TWO_PI
     end
-    a = a * FixedNumber.New(FixedMathTable.COS_BASE) / FixedMath.FIXED_PI
-    return FixedNumber.New(FixedMathTable.COS_TABLE[FixedMath.FixedInt(a) + 1], -FixedMathTable.COS_EXP)
+    a = a * FixedNumber.New(FixedMathTable.COS_BASE) / FixedMath.PI
+    return FixedNumber.New(
+        FixedMathTable.COS_TABLE[FixedMath.ToInt(a) + 1]
+        , -FixedMathTable.COS_EXP)
 end
 
-local FIXED_HALF_PI = FixedMath.FIXED_PI / FIXED_TWO
+local HALF_PI = FixedMath.PI / TWO
 
-FixedMath.FixedAsin = function(a)
-    return FIXED_HALF_PI - FixedMath.FixedAcos(a)
+FixedMath.Asin = function(a)
+    return HALF_PI - FixedMath.Acos(a)
 end
 
-FixedMath.FixedAcos = function(a)
-    if a < FIXED_NEG_ONE or a > FIXED_ONE then
-        return FixedNumber.New(FIXED_ZERO)
+FixedMath.Acos = function(a)
+    if a < NEG_ONE or a > ONE then
+        return FixedNumber.New(ZERO)
     end
-    a = a * FixedNumber.New(FixedMathTable.ACOS_BASE) + FixedNumber.New(FixedMathTable.ACOS_BASE);
-    return FixedNumber.New(FixedMathTable.ACOS_TABLE[FixedMath.FixedInt(a) + 1], -FixedMathTable.ACOS_EXP)
+    local t = FixedNumber.New(FixedMathTable.ACOS_BASE)
+    a = a * t + t
+    return FixedNumber.New(
+        FixedMathTable.ACOS_TABLE[FixedMath.ToInt(a) + 1]
+        , -FixedMathTable.ACOS_EXP)
 end
 
-local FIXED_ATAN2_P1 = FixedNumber.New(-0.0464964749);
-local FIXED_ATAN2_P2 = FixedNumber.New(0.15931422);
-local FIXED_ATAN2_P3 = FixedNumber.New(0.327622764);
+local ATAN2_P1 = FixedNumber.New(-0.0464964749)
+local ATAN2_P2 = FixedNumber.New(0.15931422)
+local ATAN2_P3 = FixedNumber.New(0.327622764)
 
-FixedMath.FixedAtan2 = function(b, a)
-    local x = FixedMath.FixedAbs(a)
-    local y = FixedMath.FixedAbs(b)
-    local t = FixedMath.FixedMin(x, y) / FixedMath.FixedMax(x, y)
+FixedMath.Atan2 = function(b, a)
+    local x = FixedMath.Abs(a)
+    local y = FixedMath.Abs(b)
+    local t = FixedMath.Min(x, y) / FixedMath.Max(x, y)
     local s = t * t
-    local r = ((FIXED_ATAN2_P1 * s + FIXED_ATAN2_P2) * s - FIXED_ATAN2_P3) * s * t + t
+    local r = ((ATAN2_P1 * s + ATAN2_P2) * s - ATAN2_P3) * s * t + t
     if y > x then
-        r = FIXED_HALF_PI - r
+        r = HALF_PI - r
     end
-    if a < FIXED_ZERO then
-        r = FIXED_PI - r
+    if a < ZERO then
+        r = FixedMath.PI - r
     end
-    if b < FIXED_ZERO then
+    if b < ZERO then
         r = -r
     end
     return r

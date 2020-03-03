@@ -1,8 +1,5 @@
 local FixedVector3 = {}
 
-local FixedNumber = require("fixed_number")
-local FixedMath = require("fixed_math")
-
 local ZERO                 = FixedNumber.FIXED_ZERO
 local ONE                  = FixedNumber.FIXED_ONE
 local NEG_ONE              = FixedNumber.FIXED_NEG_ONE

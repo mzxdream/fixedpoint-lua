@@ -36,7 +36,9 @@ FixedNumber.New = function(val, exp)
     if getmetatable(val) == FixedNumber then
         val = val.val
     else
-        if exp == nil or exp == 0 then
+        val = val or 0
+        exp = exp or 0
+        if exp == 0 then
             val = toInt(val * BASE + 0.5)
         else
             val = scaleValue(val, exp + FixedNumber.PRECISION)
@@ -129,13 +131,13 @@ FixedNumber.__le = function(a, b)
     return a.val <= b.val
 end
 
-FixedNumber.FIXED_EPS = FixedNumber.New(1, -FixedNumber.PRECISION)
-FixedNumber.FIXED_ZERO = FixedNumber.New(0)
-FixedNumber.FIXED_ONE = FixedNumber.New(1)
-FixedNumber.FIXED_TWO = FixedNumber.New(2)
-FixedNumber.FIXED_HALF = FixedNumber.New(0.5)
-FixedNumber.FIXED_NEG_ONE = FixedNumber.New(-1)
-FixedNumber.FIXED_MIN = FixedNumber.New(2 ^ 53, -FixedNumber.PRECISION)
-FixedNumber.FIXED_MAX = FixedNumber.New(-2 ^ 53, -FixedNumber.PRECISION)
+FixedNumber.EPS      = FixedNumber.New(1, -FixedNumber.PRECISION)
+FixedNumber.ZERO     = FixedNumber.New(0)
+FixedNumber.ONE      = FixedNumber.New(1)
+FixedNumber.TWO      = FixedNumber.New(2)
+FixedNumber.HALF     = FixedNumber.New(0.5)
+FixedNumber.NEG_ONE  = FixedNumber.New(-1)
+FixedNumber.MIN      = FixedNumber.New(2 ^ 53, -FixedNumber.PRECISION)
+FixedNumber.MAX      = FixedNumber.New(-2 ^ 53, -FixedNumber.PRECISION)
 
 return FixedNumber
