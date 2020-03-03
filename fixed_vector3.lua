@@ -41,36 +41,9 @@ FixedVector3.Get = function(a)
     return a.x, a.y, a.z
 end
 
-FixedVector3.GetX = function(a)
-    return a.x
-end
-
-FixedVector3.GetY = function(a)
-    return a.y
-end
-
-FixedVector3.GetZ = function(a)
-    return a.z
-end
-
 FixedVector3.Set = function(a, x, y, z)
     a.x = x:Clone()
     a.y = y:Clone()
-    a.z = z:Clone()
-    return a
-end
-
-FixedVector3.SetX = function(a, x)
-    a.x = x:Clone()
-    return a
-end
-
-FixedVector3.SetY = function(a, y)
-    a.y = y:Clone()
-    return a
-end
-
-FixedVector3.SetZ = function(a, z)
     a.z = z:Clone()
     return a
 end
@@ -185,14 +158,14 @@ local function ClampedMove(a, b, clampedDelta)
 end
 
 local function OrthoNormalVector(vec)
-    if Abs(vec.GetZ()) > OVER_SQRT2 then
-        local a = vec.GetY() * vec.GetY() + vec.GetZ() * vec.GetZ()
+    if Abs(vec.z) > OVER_SQRT2 then
+        local a = vec.y * vec.y + vec.z * vec.z
         local k = ONE / Sqrt(a)
-        return FixedVector3.New(ZERO, -vec.GetZ() * k, vec.GetY() * k)
+        return FixedVector3.New(ZERO, -vec.z * k, vec.y * k)
     else
-        local a = vec.GetX() * vec.GetX() + vec.GetY() * vec.GetY()
+        local a = vec.x * vec.x + vec.y * vec.y
         local k = ONE / Sqrt(a)
-        return FixedVector3.New(-vec.GetY() * k, vec.GetX() * k, ZERO);
+        return FixedVector3.New(-vec.y * k, vec.x * k, ZERO);
     end
 end
 
