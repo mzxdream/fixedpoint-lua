@@ -1,24 +1,28 @@
 local FixedVector3 = {}
 
-local ZERO                 = FixedNumber.FIXED_ZERO
-local ONE                  = FixedNumber.FIXED_ONE
-local NEG_ONE              = FixedNumber.FIXED_NEG_ONE
-local TWO                  = FixedNumber.FIXED_TWO
-local RAD2DEG              = FixedNumber.FIXED_RAD2DEG
-local OVER_SQRT2           = FixedNumber.New(0.7071067811865475244008443621048490)
+local ZERO                 = FixedNumber.ZERO
+local ONE                  = FixedNumber.ONE
+local TWO                  = FixedNumber.TWO
+local NEG_ONE              = FixedNumber.NEG_ONE
+
+local PI                   = FixedMath.PI
+local RAD2DEG              = FixedMath.RAD2DEG
+local DEG2RAD              = FixedMath.DEG2RAD
+
+local Clamp                = FixedMath.Clamp
+local Min                  = FixedMath.Min
+local Max                  = FixedMath.Max
+local Abs                  = FixedMath.Abs
+local Sqrt                 = FixedMath.Sqrt
+local Sin                  = FixedMath.Sin
+local Cos                  = FixedMath.Cos
+local Acos                 = FixedMath.Acos
+
+local OVER_SQRT2           = FixedNumber.New(0.7071067811)
 local MIN_SMOOTH_TIME      = FixedNumber.New(0.0001)
 local DOT48                = FixedNumber.New(0.48)
 local DOT235               = FixedNumber.New(0.235)
 local PI_ANGLE             = FixedNumber.New(180)
-
-local Abs                  = FixedMath.FixedAbs
-local Clamp                = FixedMath.FIxedClamp
-local Min                  = FixedMath.FixedMin
-local Max                  = FixedMath.FixedMax
-local Sqrt                 = FixedMath.FixedSqrt
-local Acos                 = FixedMath.FixedAcos
-local Sin                  = FixedMath.FixedSin
-local Cos                  = FixedMath.FixedCos
 
 FixedVector3.New = function(x, y, z)
     local t = {
@@ -61,61 +65,66 @@ FixedVector3.Normalize = function(a)
     return FixedVector3.New(a.x / num, a.y / num, a.z / num)
 end
 
-function FixedVector3:ClampMagnitude(maxLength)
-    if self:SqrMagnitude() > maxLength * maxLength then
-        self:SetNormalize()
-        self:Mul(maxLength)
+FixedVector3.ClampMagnitude = function(a, maxLength)
+    if a:SqrMagnitude() > maxLength * maxLength then
+        a:SetNormalize()
+        a:Mul(maxLength)
     end
-    return self
+    return a
 end
 
-function FixedVector3:SetNormalize()
-    local num = self:Magnitude()
+FixedVector3.SetNormalize = function(a)
+    local num = a:Magnitude()
     if num == ZERO then
-        self:Set(ZERO, ZERO, ZERO)
+        a:Set(ZERO, ZERO, ZERO)
     else
-        self.x = self.x / num
-        self.y = self.y / num
-        self.z = self.z / num
+        a.x = a.x / num
+        a.y = a.y / num
+        a.z = a.z / num
     end
-    return self
+    return a
 end
 
-function FixedVector3.SqrDistance(a, b)
-    return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) + (a.z - b.z) * (a.z - b.z)
+FixedVector3.SqrDistance = function(a, b)
+    return (a.x - b.x) * (a.x - b.x)
+        + (a.y - b.y) * (a.y - b.y)
+        + (a.z - b.z) * (a.z - b.z)
 end
 
-function FixedVector3.Distance(a, b)
+FixedVector3.Distance = function(a, b)
     return Sqrt(FixedVector3.SqrDistance(a, b))
 end
 
-function FixedVector3.Dot(a, b)
+FixedVector3.Dot = function(a, b)
     return a.x * b.x + a.y * b.y + a.z * b.z
 end
 
-function FixedVector3.Lerp(a, b, t)
+FixedVector3.Lerp = function(a, b, t)
     if t <= ZERO then
         return a:Clone()
     elseif t >= ONE then
         return b:Clone()
     end
-    return FixedVector3.New(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t)
+    return FixedVector3.New(
+        a.x + (b.x - a.x) * t
+        , a.y + (b.y - a.y) * t
+        , a.z + (b.z - a.z) * t)
 end
 
-function FixedVector3.Max(a, b)
+FixedVector3.Max = function(a, b)
     return FixedVector3.New(Max(a.x, b.x), Max(a.y, b.y), Max(a.z, b.z))
 end
 
-function FixedVector3.Min(a, b)
+FixedVector3.Min = function(a, b)
     return FixedVector3.New(Min(a.x, b.x), Min(a.y, b.y), Min(a.z, b.z))
 end
 
-function FixedVector3.Angle(a, b)
+FixedVector3.Angle = function(a, b)
     local t = FixedVector3.Dot(a:Normalize(), b:Normalize())
     return Acos(Clamp(t, NEG_ONE, ONE)) * RAD2DEG
 end
 
-function FixedVector3.OrthoNormalize(a, b, c)
+FixedVector3.OrthoNormalize = function(a, b, c)
     a:SetNormalize()
     b:Sub(b:Project(a))
     b:SetNormalize()
@@ -128,7 +137,7 @@ function FixedVector3.OrthoNormalize(a, b, c)
     return a, b, c
 end
 
-function FixedVector3.MoveTowards(current, target, maxDistanceDelta)
+FixedVector3.MoveTowards = function(current, target, maxDistanceDelta)
     local delta = target - current
     local sqrDelta = delta:SqrMagnitude()
     local sqrDistance = maxDistanceDelta * maxDistanceDelta
@@ -169,7 +178,7 @@ end
 FixedVector3.RotateTowards = function(current, target, maxRadiansDelta, maxMagnitudeDelta)
     local len1 = current:Magnitude()
     local len2 = target:Magnitude()
-    if len1 > ZERO and len2 >ZERO then
+    if len1 > ZERO and len2 > ZERO then
         local from = current / len1
         local to = target / len2
         local cosom = FixedVector3.Dot(from, to)
