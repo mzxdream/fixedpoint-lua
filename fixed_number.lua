@@ -49,6 +49,19 @@ FixedNumber.New = function(val, exp)
     return t
 end
 
+FixedNumber.Clone = function(a)
+    return FixedNumber.New(a)
+end
+
+FixedNumber.Get = function(a)
+    return a.val
+end
+
+FixedNumber.Set = function(a, v)
+    checkInt(v)
+    a.val = v
+end
+
 FixedNumber.Raw = function(a)
     return a.val / BASE
 end
