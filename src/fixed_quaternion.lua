@@ -207,7 +207,7 @@ FixedQuaternion.SetFromToRotation = function(a, from, to)
             {hxy + v.z, e + h * v.y * v.y, hyz - v.x},
             {hxz - v.y, hyz + v.x, e + hz * v.z},
         }
-        MatrixToQuatenernion(rot, a)
+        MatrixToQuaternion(rot, a)
     end
     return a
 end
@@ -432,7 +432,7 @@ FixedQuaternion.__tostring = function(a)
 end
 
 FixedQuaternion.__mul = function(a, b)
-    return Quaternion.New(
+    return FixedQuaternion.New(
         (((a.w * b.x) + (a.x * b.w)) + (a.y * b.z)) - (a.z * b.y)
         , (((a.w * b.y) + (a.y * b.w)) + (a.z * b.x)) - (a.x * b.z)
         , (((a.w * b.z) + (a.z * b.w)) + (a.x * b.y)) - (a.y * b.x)
