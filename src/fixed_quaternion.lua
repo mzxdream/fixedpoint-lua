@@ -427,8 +427,8 @@ FixedQuaternion.INDENTITY = FixedQuaternion.New(ZERO, ZERO, ZERO, ONE)
 
 FixedQuaternion.__index = FixedQuaternion
 
-FixedQuaternion.__tostring = function(self)
-    return "["..self.x..","..self.y..","..self.z..","..self.w.."]"
+FixedQuaternion.__tostring = function(a)
+    return "["..tostring(a.x)..","..tostring(a.y)..","..tostring(a.z)..","..tostring(a.w).."]"
 end
 
 FixedQuaternion.__mul = function(a, b)

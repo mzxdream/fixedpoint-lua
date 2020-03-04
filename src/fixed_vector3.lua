@@ -327,8 +327,8 @@ end
 
 FixedVector3.__index = FixedVector3
 
-FixedVector3.__tostring = function(self)
-    return "["..self.x..","..self.y..","..self.z.."]"
+FixedVector3.__tostring = function(a)
+    return "["..tostring(a.x)..","..tostring(a.y)..","..tostring(a.z).."]"
 end
 
 FixedVector3.__add = function(va, vb)
