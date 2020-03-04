@@ -1,20 +1,23 @@
 local FixedQuaternion = {}
 
-local ZERO                     = FixedNumber.FIXED_ZERO
-local ONE                      = FixedNumber.FIXED_ONE
-local NEG_ONE                  = FixedNumber.FIXED_NEG_ONE
-local HALF                     = FixedNumber.FIXED_HALF
-local TWO                      = FixedNumber.FIXED_TWO
+local ZERO                     = FixedNumber.ZERO
+local ONE                      = FixedNumber.ONE
+local TWO                      = FixedNumber.TWO
+local HALF                     = FixedNumber.HALF
+local NEG_ONE                  = FixedNumber.NEG_ONE
 
-local PI                       = FixedMath.FIXED_PI
-local RAD2DEG                  = FixedMath.FIXED_RAD2DEG
-local DEG2RAD                  = FixedMath.FIXED_DEG2RAD
-local Sqrt                     = FixedMath.FixedSqrt
-local Acos                     = FixedMath.FixedAcos
-local Sin                      = FixedMath.FixedSin
-local Cos                      = FixedMath.FixedCos
-local Min                      = FixedMath.FixedMin
-local Max                      = FixedMath.FixedMax
+local PI                       = FixedMath.PI
+local RAD2DEG                  = FixedMath.RAD2DEG
+local DEG2RAD                  = FixedMath.DEG2RAD
+local Clamp                    = FixedMath.Clamp
+local Min                      = FixedMath.Min
+local Max                      = FixedMath.Max
+local Sqrt                     = FixedMath.Sqrt
+local Sin                      = FixedMath.Sin
+local Cos                      = FixedMath.Cos
+local Asin                     = FixedMath.Asin
+local Acos                     = FixedMath.Acos
+local Atan2                    = FixedMath.Atan2
 
 local RIGHT                    = FixedVector3.RIGHT
 local FORWARD                  = FixedVector3.FORWARD
@@ -218,6 +221,7 @@ FixedQuaternion.SetIndentity = function(a)
     a.y = ZERO
     a.z = ZERO
     a.w = ONE
+    return a
 end
 
 FixedQuaternion.ToAngleAxis = function(a)
@@ -320,7 +324,7 @@ end
 
 FixedQuaternion.AngleAxis = function(angle, axis)
     local normAxis = axis:Normalize()
-    angle = angle * HALF_DEG2RAD
+    angle = angle * DEG2RAD / TWO
     local s = Sin(angle)
     local w = Cos(angle)
     local x = normAxis.x * s
@@ -330,12 +334,12 @@ FixedQuaternion.AngleAxis = function(angle, axis)
 end
 
 FixedQuaternion.Euler = function(x, y, z)
-    local t = FixedQuaternion.New()
+    local t = FixedQuaternion.New(ZERO, ZERO, ZERO, ONE)
     return t:SetEuler(x, y, z)
 end
 
 FixedQuaternion.FromToRotation = function(from, to)
-    local t = FixedQuaternion.New()
+    local t = FixedQuaternion.New(ZERO, ZERO, ZERO, ONE)
     return t:SetFromToRotation(from, to)
 end
 
@@ -359,7 +363,7 @@ end
 
 FixedQuaternion.LookRotation = function(forward, up)
     local mag = forward:Magnitude()
-    if mag <= ZERO  then
+    if mag <= ZERO then
         error("error input forward "..tostring(forward))
         return nil
     end
