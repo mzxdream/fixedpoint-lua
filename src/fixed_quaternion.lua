@@ -379,7 +379,7 @@ FixedQuaternion.LookRotation = function(forward, up)
         {right.y, up.y, forward.y},
         {right.z, up.z, forward.z},
     };
-    MatrixToQuaternion(rot, &quat);
+    MatrixToQuaternion(rot, quat);
     return quat
 end
 

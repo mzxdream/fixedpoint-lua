@@ -1,5 +1,5 @@
-local FixedNumber = require("fixed_number")
-local FixedMath = require("fixed_math")
+package.path = "../src/?.lua;"..package.path
+require('fixed_import')
 
 local a = FixedNumber.New(123)
 local b = FixedNumber.New(456.789)
@@ -13,45 +13,45 @@ local b = FixedNumber.New(456.789)
 --print(a < b)
 --print(a <= b)
 
-print(FixedMath.FixedInt(a))
-print(FixedMath.FixedInt(b))
+print(FixedMath.ToInt(a))
+print(FixedMath.ToInt(b))
 
-print(FixedMath.FixedFloor(FixedNumber.New(-1.1)))
-print(FixedMath.FixedFloor(FixedNumber.New(1.1)))
+print(FixedMath.Floor(FixedNumber.New(-1.1)))
+print(FixedMath.Floor(FixedNumber.New(1.1)))
 
-print(FixedMath.FixedCeil(FixedNumber.New(1.1)))
-print(FixedMath.FixedCeil(FixedNumber.New(-1.1)))
+print(FixedMath.Ceil(FixedNumber.New(1.1)))
+print(FixedMath.Ceil(FixedNumber.New(-1.1)))
 
 
-print(FixedMath.FixedRound(FixedNumber.New(1.45)))
-print(FixedMath.FixedRound(FixedNumber.New(1.51)))
-print(FixedMath.FixedRound(FixedNumber.New(-1.45)))
-print(FixedMath.FixedRound(FixedNumber.New(-1.51)))
+print(FixedMath.Round(FixedNumber.New(1.45)))
+print(FixedMath.Round(FixedNumber.New(1.51)))
+print(FixedMath.Round(FixedNumber.New(-1.45)))
+print(FixedMath.Round(FixedNumber.New(-1.51)))
 
-print(FixedMath.FixedClamp(a, FixedNumber.FIXED_ZERO, b))
+print(FixedMath.Clamp(a, FixedNumber.ZERO, b))
 
-print(FixedMath.FixedPow(a, 3))
-print(FixedMath.FixedPow(FixedNumber.New(1.123), -4))
+print(FixedMath.Pow(a, 3))
+print(FixedMath.Pow(FixedNumber.New(1.123), -4))
 
-print(FixedMath.FixedMin(a, b))
-print(FixedMath.FixedMax(a, b))
+print(FixedMath.Min(a, b))
+print(FixedMath.Max(a, b))
 
-print(FixedMath.FixedAbs(a))
+print(FixedMath.Abs(a))
 
-print(FixedMath.FixedSqrt(a))
+print(FixedMath.Sqrt(a))
 print(math.sqrt(a:Raw()))
 
-print(FixedMath.FixedSin(a))
+print(FixedMath.Sin(a))
 print(math.sin(a:Raw()))
 
-print(FixedMath.FixedCos(a))
+print(FixedMath.Cos(a))
 print(math.cos(a:Raw()))
 
-print(FixedMath.FixedAsin(FixedNumber.New(0.6)))
+print(FixedMath.Asin(FixedNumber.New(0.6)))
 print(math.asin(0.6))
 
-print(FixedMath.FixedAcos(FixedNumber.New(0.7)))
+print(FixedMath.Acos(FixedNumber.New(0.7)))
 print(math.acos(0.7))
 
-print(FixedMath.FixedAtan2(b, a))
+print(FixedMath.Atan2(b, a))
 print(math.atan2(b:Raw(), a:Raw()))
