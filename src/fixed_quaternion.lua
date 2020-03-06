@@ -230,7 +230,7 @@ FixedQuaternion.ToAngleAxis = function(a)
         return angle * RAD2DEG, FixedVector3.New(ONE, ZERO, ZERO)
     end
     local div = ONE / Sqrt(ONE - Sqrt(a.w))
-    return angle * RAD2DEG, Vector3.New(a.x * div, a.y * div, a.z * div)
+    return angle * RAD2DEG, FixedVector3.New(a.x * div, a.y * div, a.z * div)
 end
 
 local function SanitizeEuler(euler)
