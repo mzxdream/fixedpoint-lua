@@ -15,15 +15,6 @@ FixedNumber.FRACTIONAL_BASE = 1 << FixedNumber.FRACTIONAL_BITS
 FixedNumber.FRACTIONAL_MASK = (1 << FixedNumber.FRACTIONAL_BITS) - 1
 FixedNumber.FRACTIONAL_HALF = (1 << (FixedNumber.FRACTIONAL_BITS - 1))
 
-FixedNumber.FromDouble = function(val)
-    val = toInt((val or 0) * FixedNumber.FRACTIONAL_BASE)
-    local t = {
-        val = val,
-    }
-    setmetatable(t, FixedNumber)
-    return t
-end
-
 FixedNumber.FromRaw = function(val)
     checkInt(val)
     local t = {
@@ -31,6 +22,28 @@ FixedNumber.FromRaw = function(val)
     }
     setmetatable(t, FixedNumber)
     return t
+end
+
+FixedNumber.FromDouble = function(val)
+    return FixedNumber.FromRaw(toInt((val or 0) * FixedNumber.FRACTIONAL_BASE))
+end
+
+FixedNumber.FromFraction = function(numerator, denominator)
+    checkInt(numerator)
+    checkInt(denominator)
+    if numerator >= 0 then
+        if denominator > 0 then
+            return FixedNumber.FromRaw(((numerator << (FixedNumber.FRACTIONAL_BITS + 1)) / denominator + 1) >> 1)
+        elseif denominator < 0 then
+            return FixedNumber.FromRaw(-(((numerator << (FixedNumber.FRACTIONAL_BITS + 1)) / -denominator + 1) >> 1))
+        end
+    else
+        if denominator > 0 then
+            return FixedNumber(-(((-numerator << (FRACTIONAL_BITS + 1)) / denominator + 1) >> 1))
+        elseif denominator < 0 then
+            return FixedNumber(((-numerator << (FRACTIONAL_BITS + 1)) / (-denominator) + 1) >> 1)
+        end
+    end
 end
 
 FixedNumber.Get = function(a)
