@@ -1,0 +1,1 @@
+python generate.py ../src/fixed_consts.lua 24

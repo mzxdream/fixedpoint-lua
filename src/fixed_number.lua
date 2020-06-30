@@ -1,18 +1,8 @@
 local FixedNumber = {}
 
-FixedNumber.PRECISION = 5
-
-local base = { 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000 };
-
-local BASE = base[FixedNumber.PRECISION]
-
-local function isInt(x)
-    local _, dec = math.modf(x)
-    return dec == 0
-end
-
 local function checkInt(x)
-    assert(isInt(x))
+    local _, dec = math.modf(x)
+    assert(dec == 0)
 end
 
 local function toInt(x)
@@ -20,30 +10,13 @@ local function toInt(x)
     return t
 end
 
-local function scaleValue(val, exp)
-    checkInt(val)
-    checkInt(exp)
-    if exp == 0 then
-        return val
-    end
-    if exp > 0 then
-        return toInt(val * base[exp])
-    end
-    return toInt(val / base[-exp])
-end
+FixedNumber.FRACTIONAL_BITS = 24
+FixedNumber.FRACTIONAL_BASE = 1 << FixedNumber.FRACTIONAL_BITS
+FixedNumber.FRACTIONAL_MASK = (1 << FixedNumber.FRACTIONAL_BITS) - 1
+FixedNumber.FRACTIONAL_HALF = (1 << (FixedNumber.FRACTIONAL_BITS - 1))
 
-FixedNumber.New = function(val, exp)
-    if getmetatable(val) == FixedNumber then
-        val = val.val
-    else
-        val = val or 0
-        exp = exp or 0
-        if exp == 0 then
-            val = toInt(val * BASE + 0.5)
-        else
-            val = scaleValue(val, exp + FixedNumber.PRECISION)
-        end
-    end
+FixedNumber.FromDouble = function(val)
+    val = toInt((val or 0) * FixedNumber.FRACTIONAL_BASE)
     local t = {
         val = val,
     }
@@ -51,72 +24,112 @@ FixedNumber.New = function(val, exp)
     return t
 end
 
-FixedNumber.Clone = function(a)
-    return FixedNumber.New(a)
+FixedNumber.FromRaw = function(val)
+    checkInt(val)
+    local t = {
+        val = val,
+    }
+    setmetatable(t, FixedNumber)
+    return t
 end
 
 FixedNumber.Get = function(a)
     return a.val
 end
 
-FixedNumber.Set = function(a, v)
-    checkInt(v)
-    a.val = v
+FixedNumber.Clone = function(a)
+    return FixedNumber.FromRaw(a.val)
 end
 
-FixedNumber.Raw = function(a)
-    return a.val / BASE
+FixedNumber.Copy = function(a, b)
+    a.val = b.val
 end
 
 FixedNumber.ToInt = function(a)
-    return toInt(a.val / BASE)
+    if a.val >= 0 then
+        return a.val >> FixedNumber.FRACTIONAL_BITS
+    else
+        return -(-a.val >> FixedNumber.FRACTIONAL_BITS)
+    end
+end
+
+FixedNumber.ToDouble = function(a)
+    return a.val / FixedNumber.FRACTIONAL_BASE
 end
 
 FixedNumber.ToFloor = function(a)
     if a.val >= 0 then
-        return toInt(a.val / BASE)
+        return a.val >> FixedNumber.FRACTIONAL_BITS
+    else
+        return -((-a.val + FixedNumber.FRACTIONAL_MASK) >> FixedNumber.FRACTIONAL_BITS)
     end
-    return toInt((a.val - (BASE - 1)) / BASE)
 end
 
 FixedNumber.ToCeil = function(a)
     if a.val >= 0 then
-        return toInt((a.val + (BASE - 1)) / BASE)
+        return (a.val + FixedNumber.FRACTIONAL_MASK) >> FixedNumber.FRACTIONAL_BITS
+    else
+        return -(-a.val >> FixedNumber.FRACTIONAL_BITS)
     end
-    return toInt(a.val / BASE)
 end
 
 FixedNumber.ToRound = function(a)
     if a.val >= 0 then
-        return toInt((a.val + BASE / 2) / BASE)
+        return (a.val + FixedNumber.FRACTIONAL_HALF) >> FixedNumber.FRACTIONAL_BITS
+    else
+        return -((-a.val + FixedNumber.FRACTIONAL_HALF) >> FixedNumber.FRACTIONAL_BITS)
     end
-    return toInt((a.val - BASE / 2) / BASE)
 end
 
 FixedNumber.__index = FixedNumber
 
 FixedNumber.__tostring = function(a)
-    return tostring(a:Raw())
+    return tostring(a:ToDouble())
 end
 
 FixedNumber.__add = function(a, b)
-    return FixedNumber.New(a.val + b.val, -FixedNumber.PRECISION)
+    return FixedNumber.FromRaw(a.val + b.val)
 end
 
 FixedNumber.__sub = function(a, b)
-    return FixedNumber.New(a.val - b.val, -FixedNumber.PRECISION)
+    return FixedNumber.FromRaw(a.val - b.val)
 end
 
 FixedNumber.__mul = function(a, b)
-    return FixedNumber.New(toInt(a.val * b.val / BASE), -FixedNumber.PRECISION)
+    local x = math.abs(a.val)
+    local y = math.abs(b.val)
+    local x1 = x >> FixedNumber.FRACTIONAL_BITS;
+    local x2 = x & FixedNumber.FRACTIONAL_MASK;
+    local y1 = y >> FixedNumber.FRACTIONAL_BITS;
+    local y2 = y & FixedNumber.FRACTIONAL_MASK;
+    if (a.val < 0 and b.val > 0) or (a.val > 0 and b.val < 0) then
+        return FixedNumber.FromRaw(-(((x1 * y1) << FixedNumber.FRACTIONAL_BITS) + x1 * y2 + x2 * y1 + ((x2 * y2 + FixedNumber.FRACTIONAL_HALF) >> FixedNumber.FRACTIONAL_BITS)))
+    else
+        return FixedNumber.FromRaw(((x1 * y1) << FixedNumber.FRACTIONAL_BITS) + x1 * y2 + x2 * y1 + ((x2 * y2 + FixedNumber.FRACTIONAL_HALF) >> FixedNumber.FRACTIONAL_BITS))
+    end
 end
 
 FixedNumber.__div = function(a, b)
-    return FixedNumber.New(toInt(a.val * BASE / b.val), -FixedNumber.PRECISION)
+    local dividend = math.abs(a.val)
+    local divisor =  math.abs(b.val)
+    local result = 0
+    for i = 0, FixedNumber.FRACTIONAL_BITS do
+        local t = dividend // divisor
+        if t > 0 then
+            result = result + (t << (FixedNumber.FRACTIONAL_BITS + 1 - i))
+            dividend = dividend % divisor
+        end
+        dividend = dividend << 1
+    end
+    if (a.val < 0 and b.val > 0) or (a.val > 0 and b.val < 0) then
+        return FixedNumber.FromRaw(-((result + 1) >> 1))
+    else
+        return FixedNumber.FromRaw((result + 1) >> 1)
+    end
 end
 
 FixedNumber.__unm = function(a)
-    return FixedNumber.New(-a.val, -FixedNumber.PRECISION)
+    return FixedNumber.FromRaw(-a.val)
 end
 
 FixedNumber.__eq = function(a, b)
@@ -131,13 +144,26 @@ FixedNumber.__le = function(a, b)
     return a.val <= b.val
 end
 
-FixedNumber.EPS      = FixedNumber.New(1, -FixedNumber.PRECISION)
-FixedNumber.ZERO     = FixedNumber.New(0)
-FixedNumber.ONE      = FixedNumber.New(1)
-FixedNumber.TWO      = FixedNumber.New(2)
-FixedNumber.HALF     = FixedNumber.New(0.5)
-FixedNumber.NEG_ONE  = FixedNumber.New(-1)
-FixedNumber.MIN      = FixedNumber.New(2 ^ 53, -FixedNumber.PRECISION)
-FixedNumber.MAX      = FixedNumber.New(-2 ^ 53, -FixedNumber.PRECISION)
+FixedNumber.EPS         = FixedNumber.FromRaw(1)
+FixedNumber.MIN         = FixedNumber.FromRaw(-2^53)
+FixedNumber.MAX         = FixedNumber.FromRaw(2^53)
+FixedNumber.NEG_ONE     = FixedNumber.FromRaw(-FixedNumber.FRACTIONAL_BASE)
+FixedNumber.NEG_TWO     = FixedNumber.FromRaw(-2 * FixedNumber.FRACTIONAL_BASE)
+FixedNumber.ZERO        = FixedNumber.FromRaw(0)
+FixedNumber.HALF        = FixedNumber.FromRaw(FixedNumber.FRACTIONAL_HALF)
+FixedNumber.ONE         = FixedNumber.FromRaw(FixedNumber.FRACTIONAL_BASE)
+FixedNumber.TWO         = FixedNumber.FromRaw(2 * FixedNumber.FRACTIONAL_BASE)
+FixedNumber.FOUR        = FixedNumber.FromRaw(4 * FixedNumber.FRACTIONAL_BASE)
+FixedNumber.NUM90       = FixedNumber.FromRaw(90 * FixedNumber.FRACTIONAL_BASE)
+FixedNumber.NUM180      = FixedNumber.FromRaw(180 * FixedNumber.FRACTIONAL_BASE)
+FixedNumber.NUM270      = FixedNumber.FromRaw(270 * FixedNumber.FRACTIONAL_BASE)
+FixedNumber.NUM360      = FixedNumber.FromRaw(360 * FixedNumber.FRACTIONAL_BASE)
+FixedNumber.NUM255      = FixedNumber.FromRaw(255 * FixedNumber.FRACTIONAL_BASE)
+FixedNumber.DOT1        = FixedNumber.FromRaw()
+FixedNumber.DOT01       = FixedNumber.FromRaw()
+FixedNumber.DOT001      = FixedNumber.FromRaw()
+FixedNumber.DOT0001     = FixedNumber.FromRaw()
+FixedNumber.DOT00001    = FixedNumber.FromRaw()
+FixedNumber.DOT000001   = FixedNumber.FromRaw()
 
 return FixedNumber
