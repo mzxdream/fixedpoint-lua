@@ -18,5 +18,8 @@ function RandDouble(mina, maxa)
 end
 
 require('test_number')
+require('test_math')
 
-TestNumber(10000)
+local count = 10000
+--TestNumber(count)
+TestMath(count)

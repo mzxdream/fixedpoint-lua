@@ -98,12 +98,12 @@ FixedMath.Deg2Rad = function(a)
     if val < 0 then
         val = val + 360 * FixedNumber.FRACTIONAL_BASE
     end
-    return FixedNumber.FromRaw(val * FixedConsts.TWO_PI / (360 * FixedNumber.FRACTIONAL_BASE))
+    return FixedNumber.FromRaw(val * FixedConsts.TWO_PI // (360 * FixedNumber.FRACTIONAL_BASE))
 end
 
 --[0-90)
 local function CosDegLookupTable(deg)
-    return FixedConsts.COS_TABLE[deg * #FixedConsts.COS_TABLE / (90 * FixedNumber.FRACTIONAL_BASE) + 1]
+    return FixedConsts.COS_TABLE[deg * #FixedConsts.COS_TABLE // (90 * FixedNumber.FRACTIONAL_BASE) + 1]
 end
 
 local function CosDegRaw(val)
@@ -123,7 +123,7 @@ local function CosDegRaw(val)
 end
 
 FixedMath.SinDeg = function(a)
-    return FixedNumber.FromRaw(-CosDegRaw(a:Get()) + 90 * FixedNumber.FRACTIONAL_BASE)
+    return FixedNumber.FromRaw(-CosDegRaw(a:Get() + 90 * FixedNumber.FRACTIONAL_BASE))
 end
 
 FixedMath.CosDeg = function(a)
