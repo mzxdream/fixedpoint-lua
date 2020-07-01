@@ -1,40 +1,11 @@
 local FixedQuaternion = {}
 
-local ZERO                     = FixedNumber.ZERO
-local ONE                      = FixedNumber.ONE
-local TWO                      = FixedNumber.TWO
-local HALF                     = FixedNumber.HALF
-local NEG_ONE                  = FixedNumber.NEG_ONE
-
-local PI                       = FixedMath.PI
-local RAD2DEG                  = FixedMath.RAD2DEG
-local DEG2RAD                  = FixedMath.DEG2RAD
-local Clamp                    = FixedMath.Clamp
-local Min                      = FixedMath.Min
-local Max                      = FixedMath.Max
-local Sqrt                     = FixedMath.Sqrt
-local Sin                      = FixedMath.Sin
-local Cos                      = FixedMath.Cos
-local Asin                     = FixedMath.Asin
-local Acos                     = FixedMath.Acos
-local Atan2                    = FixedMath.Atan2
-
-local RIGHT                    = FixedVector3.RIGHT
-local FORWARD                  = FixedVector3.FORWARD
-local UP                       = FixedVector3.UP
-
-local DOT95                    = FixedNumber.New(0.95)
-local HALF_PI                  = PI / TWO
-local TWO_PI                   = TWO * PI
-local NEG_FLIP                 = FixedNumber.New(-0.0001)
-local POS_FLIP                 = TWO_PI + NEG_FLIP
-
 FixedQuaternion.New = function(x, y, z, w)
     local t = {
-        x = FixedNumber.New(x),
-        y = FixedNumber.New(y),
-        z = FixedNumber.New(z),
-        w = FixedNumber.New(w),
+        x = x:Clone(),
+        y = y:Clone(),
+        z = z:Clone(),
+        w = w:Clone(),
     }
     setmetatable(t, FixedQuaternion)
     return t
@@ -44,28 +15,27 @@ FixedQuaternion.Clone = function(a)
     return FixedQuaternion.New(a.x, a.y, a.z, a.w)
 end
 
+FixedQuaternion.Copy = function(a, b)
+    a.x:Copy(b.x)
+    a.y:Copy(b.y)
+    a.z:Copy(b.z)
+    a.w:Copy(b.w)
+end
+
 FixedQuaternion.Get = function(a)
     return a.x, a.y, a.z, a.w
 end
 
-FixedQuaternion.Set = function(a, x, y, z, w)
-    a.x = x:Clone()
-    a.y = y:Clone()
-    a.z = z:Clone()
-    a.w = w:Clone()
-    return a
-end
-
 FixedQuaternion.SetEuler = function(a, x, y, z)
-    x = x * DEG2RAD / TWO
-    y = y * DEG2RAD / TWO
-    z = z * DEG2RAD / TWO
-    local sinX = Sin(x)
-    local cosX = Cos(x)
-    local sinY = Sin(y)
-    local cosY = Cos(y)
-    local sinZ = Sin(z)
-    local cosZ = Cos(z)
+    x = FixedMath.Deg2Rad(x) / FixedNumber.TWO
+    y = FixedMath.Deg2Rad(y) / FixedNumber.TWO
+    z = FixedMath.Deg2Rad(z) / FixedNumber.TWO
+    local sinX = FixedMath.Sin(x)
+    local cosX = FixedMath.Cos(x)
+    local sinY = FixedMath.Sin(y)
+    local cosY = FixedMath.Cos(y)
+    local sinZ = FixedMath.Sin(z)
+    local cosZ = FixedMath.Cos(z)
     a.w = cosY * cosX * cosZ + sinY * sinX * sinZ
     a.x = cosY * sinX * cosZ + sinY * cosX * sinZ
     a.y = sinY * cosX * cosZ - cosY * sinX * sinZ
@@ -78,8 +48,8 @@ FixedQuaternion.Normalize = function(a)
 end
 
 FixedQuaternion.SetNormalize = function(a)
-    local n = Sqrt(a.x * a.x + a.y * a.y + a.z * a.z + a.w * a.w)
-    if n > ZERO then
+    local n = FixedMath.Sqrt(a.x * a.x + a.y * a.y + a.z * a.z + a.w * a.w)
+    if n > FixedNumber.ZERO then
         a.x = a.x / n
         a.y = a.y / n
         a.z = a.z / n
@@ -92,36 +62,36 @@ FixedQuaternion.SetFromToRotation1 = function(a, from, to)
     local v0 = from:Normalize()
     local v1 = to:Normalize()
     local d = FixedVector3.Dot(v0, v1)
-    if d > NEG_ONE then
-        local s = Sqrt((ONE + d) * TWO)
-        local invs = ONE / s
+    if d > FixedNumber.NEG_ONE then
+        local s = FixedMath.Sqrt((FixedNumber.ONE + d) * FixedNumber.TWO)
+        local invs = FixedNumber.ONE / s
         local c = FixedVector3.Cross(v0, v1) * invs
-        a:Set(c.x, c.y, c.z, s / TWO)
-    elseif d >= ONE then
-        a:Set(ZERO, ZERO, ZERO, ONE)
+        a:Set(c.x, c.y, c.z, s / FixedNumber.TWO)
+    elseif d >= FixedNumber.ONE then
+        a:Set(FixedNumber.ZERO, FixedNumber.ZERO, FixedNumber.ZERO, FixedNumber.ONE)
     else
-        local axis = FixedVector3.Cross(RIGHT, v0)
-        if axis:SqrMagnitude() <= ZERO then
-            axis = FixedVector3.Cross(FORWARD, v0)
+        local axis = FixedVector3.Cross(FixedVector3.RIGHT, v0)
+        if axis:SqrMagnitude() <= FixedNumber.ZERO then
+            axis = FixedVector3.Cross(FixedVector3.FORWARD, v0)
         end
-        a:Set(axis.x, axis.y, axis.z, ZERO)
+        a:Set(axis.x, axis.y, axis.z, FixedNumber.ZERO)
     end
     return a
 end
 
 local function MatrixToQuaternion(rot, quat)
     local trace = rot[1][1] + rot[2][2] + rot[3][3]
-    if trace > ZERO then
-        local s = Sqrt(trace + ONE)
-        quat.w = s / TWO
-        s = ONE / (TWO * s)
+    if trace > FixedNumber.ZERO then
+        local s = FixedMath.Sqrt(trace + FixedNumber.ONE)
+        quat.w = s / FixedNumber.TWO
+        s = FixedNumber.ONE / (FixedNumber.TWO * s)
         quat.x = (rot[3][2] - rot[2][3]) * s
         quat.y = (rot[1][3] - rot[3][1]) * s
         quat.z = (rot[2][1] - rot[1][2]) * s
         quat:SetNormalize()
     else
         local i = 1
-        local q = {ZERO, ZERO, ZERO}
+        local q = {FixedNumber.ZERO, FixedNumber.ZERO, FixedNumber.ZERO}
         if rot[2][2] > rot[1][1] then
             i = 2
         end
@@ -131,8 +101,8 @@ local function MatrixToQuaternion(rot, quat)
         local NEXT = {2, 3, 1}
         local j = NEXT[i]
         local k = NEXT[j]
-        local t = rot[i][i] - rot[j][j] - rot[k][k] + ONE
-        local s = ONE / (TWO * Sqrt(t))
+        local t = rot[i][i] - rot[j][j] - rot[k][k] + FixedNumber.ONE
+        local s = FixedNumber.ONE / (FixedNumber.TWO * FixedMath.Sqrt(t))
         q[i] = s * t
         local w = (rot[k][j] - rot[j][k]) * s
         q[j] = (rot[j][i] + rot[i][j]) * s
@@ -146,22 +116,22 @@ FixedQuaternion.SetFromToRotation = function(a, from, to)
     from = from:Normalize()
     to = to:Normalize()
     local e = FixedVector3.Dot(from, to)
-    if e >= ONE then
-        a:Set(ZERO, ZERO, ZERO, ONE)
-    elseif e <= NEG_ONE then
-        local left = {ZERO, from.z, from.y}
+    if e >= FixedNumber.ONE then
+        a:Set(FixedNumber.ZERO, FixedNumber.ZERO, FixedNumber.ZERO, FixedNumber.ONE)
+    elseif e <= FixedNumber.NEG_ONE then
+        local left = {FixedNumber.ZERO, from.z, from.y}
         local mag = left[2] * left[2] + left[3] * left[3]
-        if mag <= ZERO then
+        if mag <= FixedNumber.ZERO then
             left[1] = -from.z
-            left[2] = ZERO
+            left[2] = FixedNumber.ZERO
             left[3] = from.x
             mag = left[1] * left[1] + left[3] * left[3]
         end
-        local invlen = ONE / Sqrt(mag)
+        local invlen = FixedNumber.ONE / FixedMath.Sqrt(mag)
         left[1] = left[1] * invlen
         left[2] = left[2] * invlen
         left[3] = left[3] * invlen
-        local up = {ZERO, ZERO, ZERO}
+        local up = {FixedNumber.ZERO, FixedNumber.ZERO, FixedNumber.ZERO}
         up[1] = left[2] * from.z - left[3] * from.y
         up[2] = left[3] * from.x - left[1] * from.z
         up[3] = left[1] * from.y - left[2] * from.x
@@ -195,7 +165,7 @@ FixedQuaternion.SetFromToRotation = function(a, from, to)
         MatrixToQuaternion(rot, a)
     else
         local v = FixedVector3.Cross(from, to)
-        local h = (ONE - e) / FixedVector3.Dot(v, v)
+        local h = (FixedNumber.ONE - e) / FixedVector3.Dot(v, v)
         local hx = h * v.x
         local hz = h * v.z
         local hxy = hx * v.y
@@ -217,37 +187,40 @@ FixedQuaternion.Inverse = function(a)
 end
 
 FixedQuaternion.SetIndentity = function(a)
-    a.x = ZERO
-    a.y = ZERO
-    a.z = ZERO
-    a.w = ONE
+    a.x = FixedNumber.ZERO
+    a.y = FixedNumber.ZERO
+    a.z = FixedNumber.ZERO
+    a.w = FixedNumber.ONE
     return a
 end
 
 FixedQuaternion.ToAngleAxis = function(a)
-    local angle = TWO * Acos(a.w)
-    if angle == ZERO then
-        return angle * RAD2DEG, FixedVector3.New(ONE, ZERO, ZERO)
+    local angle = FixedNumber.TWO * FixedMath.Acos(a.w)
+    if angle == FixedNumber.ZERO then
+        return FixedMath.Rad2Deg(angle), FixedVector3.New(FixedNumber.ONE, FixedNumber.ZERO, FixedNumber.ZERO)
     end
-    local div = ONE / Sqrt(ONE - Sqrt(a.w))
-    return angle * RAD2DEG, FixedVector3.New(a.x * div, a.y * div, a.z * div)
+    local div = FixedNumber.ONE / FixedMath.Sqrt(FixedNumber.ONE - FixedMath.Sqrt(a.w))
+    return FixedMath.Rad2Deg(angle), FixedVector3.New(a.x * div, a.y * div, a.z * div)
 end
+
+local NEG_FLIP = -FixedNumber.DOT0001
+local POS_FLIP = FixedMath.TWO_PI - FixedNumber.DOT0001
 
 local function SanitizeEuler(euler)
     if euler.x < NEG_FLIP then
-        euler.x = euler.x + TWO_PI
+        euler.x = euler.x + FixedNumber.TWO_PI
     elseif euler.x > POS_FLIP then
-        euler.x = euler.x - TWO_PI
+        euler.x = euler.x - FixedNumber.TWO_PI
     end
     if euler.y < NEG_FLIP then
-        euler.y = euler.y + TWO_PI
+        euler.y = euler.y + FixedNumber.TWO_PI
     elseif euler.y > POS_FLIP then
-        euler.y = euler.y - TWO_PI
+        euler.y = euler.y - FixedNumber.TWO_PI
     end
     if euler.z < NEG_FLIP then
-        euler.z = euler.z + TWO_PI
+        euler.z = euler.z + FixedNumber.TWO_PI
     elseif euler.z > POS_FLIP then
-        euler.z = euler.z + TWO_PI
+        euler.z = euler.z + FixedNumber.TWO_PI
     end
 end
 
@@ -256,42 +229,48 @@ FixedQuaternion.ToEulerAngles = function(a)
     local y = a.y
     local z = a.z
     local w = a.w
-    local check = TWO * (y * z - w * x)
-    if check < ONE + NEG_FLIP then
-        if check > NEG_ONE - NEG_FLIP then
-            local v = FixedVector3.New(-Asin(check)
-                , Atan2(TWO * (x * z + w * y), ONE - TWO * (x * x + y * y))
-                , Atan2(TWO * (x * y + w * z), ONE - TWO * (x * x + z * z)))
+    local check = FixedNumber.TWO * (y * z - w * x)
+    if check < FixedNumber.ONE + NEG_FLIP then
+        if check > FixedNumber.NEG_ONE - NEG_FLIP then
+            local v = FixedVector3.New(-FixedMath.Asin(check)
+                , FixedMath.Atan2(FixedNumber.TWO * (x * z + w * y), FixedNumber.ONE - FixedNumber.TWO * (x * x + y * y))
+                , FixedMath.Atan2(FixedNumber.TWO * (x * y + w * z), FixedNumber.ONE - FixedNumber.TWO * (x * x + z * z)))
             SanitizeEuler(v)
-            v:Mul(RAD2DEG)
+            v.x = FixedMath.Rad2Deg(v.x)
+            v.y = FixedMath.Rad2Deg(v.y)
+            v.z = FixedMath.Rad2Deg(v.z)
             return v
         else
-            local v = FixedVector3.New(HALF_PI
-                , Atan2(TWO * (x * y - w * z), ONE - TWO * (y * y + z * z))
-                , ZERO)
+            local v = FixedVector3.New(FixedMath.HALF_PI
+                , FixedMath.Atan2(FixedNumber.TWO * (x * y - w * z), FixedNumber.ONE - FixedNumber.TWO * (y * y + z * z))
+                , FixedNumber.ZERO)
             SanitizeEuler(v)
-            v:Mul(RAD2DEG)
+            v.x = FixedMath.Rad2Deg(v.x)
+            v.y = FixedMath.Rad2Deg(v.y)
+            v.z = FixedMath.Rad2Deg(v.z)
             return v
         end
     else
-        local v = FixedVector3.New(-HALF_PI
-            , Atan2(-TWO * (x * y - w * z), ONE - TWO * (y * y + z * z))
-            , ZERO)
+        local v = FixedVector3.New(-FixedMath.HALF_PI
+            , FixedMath.Atan2(-FixedNumber.TWO * (x * y - w * z), FixedNumber.ONE - FixedNumber.TWO * (y * y + z * z))
+            , FixedNumber.ZERO)
         SanitizeEuler(v)
-        v:Mul(RAD2DEG)
+        v.x = FixedMath.Rad2Deg(v.x)
+        v.y = FixedMath.Rad2Deg(v.y)
+        v.z = FixedMath.Rad2Deg(v.z)
         return v
     end
 end
 
 FixedQuaternion.Forward = function(a)
-    return a:MulVec3(FORWARD)
+    return a:MulVec3(FixedVector3.FORWARD)
 end
 
 FixedQuaternion.MulVec3 = function(a, point)
-    local vec   = FixedVector3.New(ZERO, ZERO, ZERO)
-    local num   = a.x * TWO
-    local num2  = a.y * TWO
-    local num3  = a.z * TWO
+    local vec   = FixedVector3.New(FixedNumber.ZERO, FixedNumber.ZERO, FixedNumber.ZERO)
+    local num   = a.x * FixedNumber.TWO
+    local num2  = a.y * FixedNumber.TWO
+    local num3  = a.z * FixedNumber.TWO
     local num4  = a.x * num
     local num5  = a.y * num2
     local num6  = a.z * num3
@@ -301,12 +280,9 @@ FixedQuaternion.MulVec3 = function(a, point)
     local num10 = a.w * num
     local num11 = a.w * num2
     local num12 = a.w * num3
-    vec.x = (((ONE - (num5 + num6)) * point.x) + ((num7 - num12) * point.y))
-        + ((num8 + num11) * point.z)
-    vec.y = (((num7 + num12) * point.x) + ((ONE - (num4 + num6)) * point.y))
-        + ((num9 - num10) * point.z)
-    vec.z = (((num8 - num11) * point.x) + ((num9 + num10) * point.y))
-        + ((ONE - (num4 + num5)) * point.z)
+    vec.x = (((FixedNumber.ONE - (num5 + num6)) * point.x) + ((num7 - num12) * point.y)) + ((num8 + num11) * point.z)
+    vec.y = (((num7 + num12) * point.x) + ((FixedNumber.ONE - (num4 + num6)) * point.y)) + ((num9 - num10) * point.z)
+    vec.z = (((num8 - num11) * point.x) + ((num9 + num10) * point.y)) + ((FixedNumber.ONE - (num4 + num5)) * point.z)
     return vec
 end
 
@@ -316,17 +292,17 @@ end
 
 FixedQuaternion.Angle = function(a, b)
     local dot = FixedQuaternion.Dot(a, b)
-    if dot < ZERO then
+    if dot < FixedNumber.ZERO then
         dot = -dot
     end
-    return Acos(Min(dot, ONE)) * TWO * RAD2DEG
+    return FixedMath.Rad2Deg(FixedMath.Acos(FixedMath.Min(dot, FixedNumber.ONE)) * FixedNumber.TWO)
 end
 
 FixedQuaternion.AngleAxis = function(angle, axis)
     local normAxis = axis:Normalize()
-    angle = angle * DEG2RAD / TWO
-    local s = Sin(angle)
-    local w = Cos(angle)
+    angle = FixedMath.Deg2Rad(angle) / FixedNumber.TWO
+    local s = FixedMath.Sin(angle)
+    local w = FixedMath.Cos(angle)
     local x = normAxis.x * s
     local y = normAxis.y * s
     local z = normAxis.z * s
@@ -334,19 +310,19 @@ FixedQuaternion.AngleAxis = function(angle, axis)
 end
 
 FixedQuaternion.Euler = function(x, y, z)
-    local t = FixedQuaternion.New(ZERO, ZERO, ZERO, ONE)
+    local t = FixedQuaternion.New(FixedNUmber.ZERO, FixedNumber.ZERO, FixedNumber.ZERO, FixedNumber.ONE)
     return t:SetEuler(x, y, z)
 end
 
 FixedQuaternion.FromToRotation = function(from, to)
-    local t = FixedQuaternion.New(ZERO, ZERO, ZERO, ONE)
+    local t = FixedQuaternion.New(FixedNumber.ZERO, FixedNumber.ZERO, FixedNumber.ZERO, FixedNumber.ONE)
     return t:SetFromToRotation(from, to)
 end
 
 FixedQuaternion.Lerp = function(q1, q2, t)
-    t = Clamp(t, ZERO, ONE)
-    local q = FixedQuaternion.New(ZERO, ZERO, ZERO, ONE)
-    if FixedQuaternion.Dot(q1, q2) < ZERO then
+    t = FixedMath.Clamp(t, FixedNumber.ZERO, FixedNumber.ONE)
+    local q = FixedQuaternion.New(FixedNumber.ZERO, FixedNumber.ZERO, FixedNumber.ZERO, FixedNumber.ONE)
+    if FixedQuaternion.Dot(q1, q2) < FixedNumber.ZERO then
         q.x = q1.x + t * (-q2.x - q1.x)
         q.y = q1.y + t * (-q2.y - q1.y)
         q.z = q1.z + t * (-q2.z - q1.z)
@@ -363,17 +339,17 @@ end
 
 FixedQuaternion.LookRotation = function(forward, up)
     local mag = forward:Magnitude()
-    if mag <= ZERO then
+    if mag <= FixedNumber.ZERO then
         error("error input forward "..tostring(forward))
         return nil
     end
     forward = forward / mag
-    up = up or UP
+    up = up or FixedVector3.UP
     local right = FixedVector3.Cross(up, forward)
     right:SetNormalize()
     up = FixedVector3.Cross(forward, right)
     right = FixedVector3.Cross(up, forward)
-    local quat = FixedQuaternion.New(ZERO, ZERO, ZERO, ONE)
+    local quat = FixedQuaternion.New(FixedNumber.ZERO, FixedNumber.ZERO, FixedNumber.ZERO, FixedNumber.ONE)
     local rot = {
         {right.x, up.x, forward.x},
         {right.y, up.y, forward.y},
@@ -383,17 +359,19 @@ FixedQuaternion.LookRotation = function(forward, up)
     return quat
 end
 
+local DOT95 = FixedNumber.FromRaw(FixedConsts.DOT95)
+
 local function UnclampedSlerp(q1, q2, t)
     local dot = FixedQuaternion.Dot(q1, q2)
-    if dot < ZERO then
+    if dot < FixedNumber.ZERO then
         dot = -dot
         q2 = -q2
     end
     if dot < DOT95 then
-        local angle = Acos(dot)
-        local invSinAngle = ONE / Sin(angle)
-        local t1 = Sin((ONE - t) * angle) * invSinAngle
-        local t2 = Sin(t * angle) * invSinAngle
+        local angle = FixedMath.Acos(dot)
+        local invSinAngle = FixedNumber.ONE / FixedMath.Sin(angle)
+        local t1 = FixedMath.Sin((FixedNumber.ONE - t) * angle) * invSinAngle
+        local t2 = FixedMath.Sin(t * angle) * invSinAngle
         return FixedQuaternion.New(
             q1.x * t1 + q2.x * t2
             , q1.y * t1 + q2.y * t2
@@ -411,19 +389,19 @@ local function UnclampedSlerp(q1, q2, t)
 end
 
 FixedQuaternion.Slerp = function(from, to, t)
-    return UnclampedSlerp(from, to, Clamp(t, ZERO, ONE))
+    return UnclampedSlerp(from, to, FixedMath.Clamp(t, FixedNumber.ZERO, FixedNumber.ONE))
 end
 
 FixedQuaternion.RotateTowards = function(from, to, maxDegreesDelta)
     local angle = FixedQuaternion.Angle(from, to)
-    if angle == ZERO then
+    if angle == FixedNumber.ZERO then
         return to
     end
-    local t = Min(ONE, maxDegreesDelta / angle)
+    local t = FixedMath.Min(FixedNumber.ONE, maxDegreesDelta / angle)
     return UnclampedSlerp(from, to, t)
 end
 
-FixedQuaternion.INDENTITY = FixedQuaternion.New(ZERO, ZERO, ZERO, ONE)
+FixedQuaternion.INDENTITY = FixedQuaternion.New(FixedNumber.ZERO, FixedNumber.ZERO, FixedNumber.ZERO, FixedNumber.ONE)
 
 FixedQuaternion.__index = FixedQuaternion
 
@@ -444,7 +422,7 @@ FixedQuaternion.__unm = function(a)
 end
 
 FixedQuaternion.__eq = function(a, b)
-    return FixedQuaternion.Dot(a, b) >= ONE
+    return FixedQuaternion.Dot(a, b) >= FixedNumber.ONE
 end
 
 return FixedQuaternion
