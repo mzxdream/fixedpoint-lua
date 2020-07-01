@@ -33,15 +33,15 @@ FixedNumber.FromFraction = function(numerator, denominator)
     checkInt(denominator)
     if numerator >= 0 then
         if denominator > 0 then
-            return FixedNumber.FromRaw(((numerator << (FixedNumber.FRACTIONAL_BITS + 1)) / denominator + 1) >> 1)
+            return FixedNumber.FromRaw(((numerator << (FixedNumber.FRACTIONAL_BITS + 1)) // denominator + 1) >> 1)
         elseif denominator < 0 then
-            return FixedNumber.FromRaw(-(((numerator << (FixedNumber.FRACTIONAL_BITS + 1)) / -denominator + 1) >> 1))
+            return FixedNumber.FromRaw(-(((numerator << (FixedNumber.FRACTIONAL_BITS + 1)) // -denominator + 1) >> 1))
         end
     else
         if denominator > 0 then
-            return FixedNumber(-(((-numerator << (FRACTIONAL_BITS + 1)) / denominator + 1) >> 1))
+            return FixedNumber.FromRaw(-(((-numerator << (FixedNumber.FRACTIONAL_BITS + 1)) // denominator + 1) >> 1))
         elseif denominator < 0 then
-            return FixedNumber(((-numerator << (FRACTIONAL_BITS + 1)) / (-denominator) + 1) >> 1)
+            return FixedNumber.FromRaw(((-numerator << (FixedNumber.FRACTIONAL_BITS + 1)) // (-denominator) + 1) >> 1)
         end
     end
 end
@@ -172,11 +172,11 @@ FixedNumber.NUM180      = FixedNumber.FromRaw(180 * FixedNumber.FRACTIONAL_BASE)
 FixedNumber.NUM270      = FixedNumber.FromRaw(270 * FixedNumber.FRACTIONAL_BASE)
 FixedNumber.NUM360      = FixedNumber.FromRaw(360 * FixedNumber.FRACTIONAL_BASE)
 FixedNumber.NUM255      = FixedNumber.FromRaw(255 * FixedNumber.FRACTIONAL_BASE)
-FixedNumber.DOT1        = FixedNumber.FromRaw()
-FixedNumber.DOT01       = FixedNumber.FromRaw()
-FixedNumber.DOT001      = FixedNumber.FromRaw()
-FixedNumber.DOT0001     = FixedNumber.FromRaw()
-FixedNumber.DOT00001    = FixedNumber.FromRaw()
-FixedNumber.DOT000001   = FixedNumber.FromRaw()
+FixedNumber.DOT1        = FixedNumber.FromRaw(FixedConsts.DOT1)
+FixedNumber.DOT01       = FixedNumber.FromRaw(FixedConsts.DOT01)
+FixedNumber.DOT001      = FixedNumber.FromRaw(FixedConsts.DOT001)
+FixedNumber.DOT0001     = FixedNumber.FromRaw(FixedConsts.DOT0001)
+FixedNumber.DOT00001    = FixedNumber.FromRaw(FixedConsts.DOT00001)
+FixedNumber.DOT000001   = FixedNumber.FromRaw(FixedConsts.DOT000001)
 
 return FixedNumber
