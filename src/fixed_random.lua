@@ -34,17 +34,35 @@ local function Extract(r)
     return y
 end
 
+local function RandUnsigned(r, a)
+    if a > 2^32 - 1 then
+        return ((Extract(r) % (a >> 32)) << 32) + (Extract(r) % (a & 0xFFFFFFFF))
+    else
+        return Extract(r) % a
+    end
+end
+
 FixedRandom.Rand = function(r, a, b)
     if a == nil then
         return Extract(r)
     elseif b == nil then
-        return Extract(r) % a
-    elseif a == b then
-        return a
+        return RandUnsigned(r, a)
     elseif a < b then
-        return a + (Extract(r) % (b - a))
+        return a + RandUnsigned(r, b - a)
     else
-        return b + (Extract(r) % (a - b))
+        return b + RandUnsigned(r, a - b)
+    end
+end
+
+FixedRandom.RandNumber = function(r, a, b)
+    if a == nil then
+        return FixedNumber.FromRaw(Extract(r) % FixedNumber.FRACTIONAL_BASE)
+    elseif b == nil then
+        return FixedNumber.FromRaw(RandUnsigned(r, a:Get()))
+    elseif a < b then
+        return FixedNumber.FromRaw(a:Get() + RandUnsigned(r, b:Get() - a:Get()))
+    else
+        return FixedNumber.FromRaw(b:Get() + RandUnsigned(r, a:Get() - b:Get()))
     end
 end
 

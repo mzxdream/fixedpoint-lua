@@ -19,7 +19,9 @@ end
 
 require('test_number')
 require('test_math')
+require('test_random')
 
 local count = 10000
 --TestNumber(count)
-TestMath(count)
+--TestMath(count)
+TestRand(count)
