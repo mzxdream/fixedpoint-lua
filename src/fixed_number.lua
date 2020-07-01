@@ -46,16 +46,16 @@ FixedNumber.FromFraction = function(numerator, denominator)
     end
 end
 
-FixedNumber.Get = function(a)
-    return a.val
-end
-
 FixedNumber.Clone = function(a)
     return FixedNumber.FromRaw(a.val)
 end
 
 FixedNumber.Copy = function(a, b)
     a.val = b.val
+end
+
+FixedNumber.Get = function(a)
+    return a.val
 end
 
 FixedNumber.ToInt = function(a)
